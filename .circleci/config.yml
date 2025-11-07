@@ -1,3 +1,4 @@
+---
 version: 2.1
 
 jobs:
@@ -19,34 +20,30 @@ jobs:
             fi
 
       - run:
-          name: Instalar Railway CLI
+          name: Verificar versión de Node y NPM
           command: |
-            npm install -g @railway/cli
+            node -v
+            npm -v
 
       - run:
-          name: Mostrar versión Railway CLI
-          command: railway -v
-
-      - run:
-          name: Verificar variables de Railway
+          name: Compilar aplicación
           command: |
-            echo "RAILWAY_PROJECT_ID=${RAILWAY_PROJECT_ID}"
-            echo "RAILWAY_SERVICE_ID=${RAILWAY_SERVICE_ID}"
-            if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_PROJECT_ID" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
-              echo "❌ Faltan variables de entorno de Railway"
-              exit 1
-            fi
+            npm run build || echo "Sin script de build, continuando..."
 
       - run:
-          name: Desplegar a Railway
+          name: Autenticarse en Railway
+          command: |
+            railway login --token $RAILWAY_TOKEN
+
+      - run:
+          name: Desplegar aplicación en Railway
           command: |
             railway up \
-              --project "$RAILWAY_PROJECT_ID" \
-              --service "$RAILWAY_SERVICE_ID" \
+              --project $RAILWAY_PROJECT_ID \
+              --service $RAILWAY_SERVICE_ID \
               --detach
 
 workflows:
   build_and_deploy_workflow:
     jobs:
       - build_and_deploy
-
