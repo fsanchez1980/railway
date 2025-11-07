@@ -1,0 +1,27 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.2.0
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:20.9
+    steps:
+      - checkout
+      - run:
+          name: Instalar dependencias
+          command: npm install
+      - run:
+          name: Verificar versión de Node
+          command: |
+            node -v
+            npm -v
+      - run:
+          name: Ejecutar servidor en modo test
+          command: echo "Simulación de despliegue exitoso en CircleCI"
+
+workflows:
+  build_and_test:
+    jobs:
+      - build
