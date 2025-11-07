@@ -1,27 +1,47 @@
 version: 2.1
 
-orbs:
-  node: circleci/node@5.2.0
-
 jobs:
-  build:
+  build_and_deploy:
     docker:
-      - image: cimg/node:20.9
+      - image: cimg/node:18.20
+    working_directory: ~/project
+
     steps:
       - checkout
+
       - run:
           name: Instalar dependencias
-          command: npm install
-      - run:
-          name: Verificar versión de Node
           command: |
-            node -v
-            npm -v
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
+
       - run:
-          name: Ejecutar servidor en modo test
-          command: echo "Simulación de despliegue exitoso en CircleCI"
+          name: Ejecutar pruebas (opcional)
+          command: |
+            echo "Sin pruebas definidas, continuando..."
+
+      - run:
+          name: Instalar Railway CLI
+          command: |
+            npm install -g @railway/cli
+
+      - run:
+          name: Verificar autenticación con Railway
+          command: |
+            railway whoami || (echo "Error: Railway no reconoce el token (RAILWAY_TOKEN)"; exit 1)
+
+      - run:
+          name: Desplegar en Railway
+          command: |
+            railway up \
+              --project "$RAILWAY_PROJECT_ID" \
+              --service "$RAILWAY_SERVICE_ID" \
+              --ci --no-interactive
 
 workflows:
-  build_and_test:
+  build_and_deploy_workflow:
     jobs:
-      - build
+      - build_and_deploy
