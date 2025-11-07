@@ -5,8 +5,7 @@ jobs:
     docker:
       - image: cimg/node:18.20
     working_directory: ~/project
-    environment:
-      RAILWAY_TOKEN: $RAILWAY_TOKEN
+
     steps:
       - checkout
 
@@ -16,27 +15,27 @@ jobs:
             npm ci || npm install
 
       - run:
+          name: Ejecutar pruebas (opcional)
+          command: |
+            echo "Sin pruebas definidas, continuando..."
+
+      - run:
           name: Instalar Railway CLI
           command: |
             npm install -g @railway/cli
 
       - run:
-          name: Verificar autenticación Railway
-          command: |
-            railway whoami || railway --version
-
-      - run:
           name: Desplegar en Railway
           command: |
+            # El CLI usará RAILWAY_TOKEN / PROJECT_ID / SERVICE_ID
             railway up \
-              --project $RAILWAY_PROJECT_ID \
-              --service $RAILWAY_SERVICE_ID \
+              --project "$RAILWAY_PROJECT_ID" \
+              --service "$RAILWAY_SERVICE_ID" \
+              --environment production \
               --detach
+
 workflows:
   build_and_deploy_workflow:
     jobs:
-      - build_and_deploy:
-          filters:
-            branches:
-              only: main
+      - build_and_deploy
 
