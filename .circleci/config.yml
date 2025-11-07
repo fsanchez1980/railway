@@ -5,23 +5,15 @@ jobs:
     docker:
       - image: cimg/node:18.20
     working_directory: ~/project
-
+    environment:
+      RAILWAY_TOKEN: $RAILWAY_TOKEN
     steps:
       - checkout
 
       - run:
           name: Instalar dependencias
           command: |
-            if [ -f package-lock.json ]; then
-              npm ci
-            else
-              npm install
-            fi
-
-      - run:
-          name: Ejecutar pruebas (opcional)
-          command: |
-            echo "Sin pruebas definidas, continuando..."
+            npm ci || npm install
 
       - run:
           name: Instalar Railway CLI
@@ -29,19 +21,22 @@ jobs:
             npm install -g @railway/cli
 
       - run:
-          name: Verificar autenticación con Railway
+          name: Verificar autenticación Railway
           command: |
-            railway whoami
+            railway whoami || railway --version
 
       - run:
-          name: Desplegar a Railway
+          name: Desplegar en Railway
           command: |
             railway up \
-              --project "$RAILWAY_PROJECT_ID" \
-              --service "$RAILWAY_SERVICE_ID" \
-              --ci --no-interactive
+              --project $RAILWAY_PROJECT_ID \
+              --service $RAILWAY_SERVICE_ID \
+              --detach
 workflows:
   build_and_deploy_workflow:
     jobs:
-      - build_and_deploy
+      - build_and_deploy:
+          filters:
+            branches:
+              only: main
 
