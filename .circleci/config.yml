@@ -5,6 +5,7 @@ jobs:
     docker:
       - image: cimg/node:18.20
     working_directory: ~/project
+
     steps:
       - checkout
 
@@ -18,34 +19,26 @@ jobs:
             fi
 
       - run:
-          name: Ejecutar pruebas (opcional)
-          command: |
-            echo "Sin pruebas definidas, continuando..."
-
-      - run:
           name: Instalar Railway CLI
           command: |
             npm install -g @railway/cli
 
       - run:
-          name: Verificar variables de entorno
+          name: Mostrar versión Railway CLI
+          command: railway -v
+
+      - run:
+          name: Verificar variables de Railway
           command: |
-            echo "RAILWAY_PROJECT_ID=${RAILWAY_PROJECT_ID:-NO_DEFINIDO}"
-            echo "RAILWAY_SERVICE_ID=${RAILWAY_SERVICE_ID:-NO_DEFINIDO}"
-            if [ -z "$RAILWAY_TOKEN" ]; then
-              echo "RAILWAY_TOKEN NO definido"; exit 1;
-            fi
-            if [ -z "$RAILWAY_PROJECT_ID" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
-              echo "Falta PROJECT_ID o SERVICE_ID"; exit 1;
+            echo "RAILWAY_PROJECT_ID=${RAILWAY_PROJECT_ID}"
+            echo "RAILWAY_SERVICE_ID=${RAILWAY_SERVICE_ID}"
+            if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_PROJECT_ID" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
+              echo "❌ Faltan variables de entorno de Railway"
+              exit 1
             fi
 
       - run:
-          name: Ver quién soy en Railway
-          command: |
-            railway whoami || (echo "Fallo autenticación Railway"; exit 1)
-
-      - run:
-          name: Desplegar en Railway
+          name: Desplegar a Railway
           command: |
             railway up \
               --project "$RAILWAY_PROJECT_ID" \
