@@ -11,7 +11,11 @@ jobs:
       - run:
           name: Instalar dependencias
           command: |
-            npm ci || npm install
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
 
       - run:
           name: Ejecutar pruebas (opcional)
@@ -24,19 +28,29 @@ jobs:
             npm install -g @railway/cli
 
       - run:
-          name: Verificar autenticación Railway
+          name: Verificar variables de entorno
           command: |
-            railway whoami || echo "Autenticación verificada en entorno CI"
+            echo "RAILWAY_PROJECT_ID=${RAILWAY_PROJECT_ID:-NO_DEFINIDO}"
+            echo "RAILWAY_SERVICE_ID=${RAILWAY_SERVICE_ID:-NO_DEFINIDO}"
+            if [ -z "$RAILWAY_TOKEN" ]; then
+              echo "RAILWAY_TOKEN NO definido"; exit 1;
+            fi
+            if [ -z "$RAILWAY_PROJECT_ID" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
+              echo "Falta PROJECT_ID o SERVICE_ID"; exit 1;
+            fi
 
       - run:
-          name: Vincular proyecto y servicio Railway
+          name: Ver quién soy en Railway
           command: |
-            railway link --project $RAILWAY_PROJECT_ID --service $RAILWAY_SERVICE_ID --detach
+            railway whoami || (echo "Fallo autenticación Railway"; exit 1)
 
       - run:
           name: Desplegar en Railway
           command: |
-            railway up --service $RAILWAY_SERVICE_ID --detach
+            railway up \
+              --project "$RAILWAY_PROJECT_ID" \
+              --service "$RAILWAY_SERVICE_ID" \
+              --detach
 
 workflows:
   build_and_deploy_workflow:
