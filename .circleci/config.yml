@@ -31,15 +31,16 @@ jobs:
       - run:
           name: Verificar autenticación con Railway
           command: |
-            railway whoami || (echo "Error: Railway no reconoce el token (RAILWAY_TOKEN)"; exit 1)
+            railway whoami
 
       - run:
-          name: Desplegar en Railway
+          name: Desplegar a Railway
           command: |
             railway up \
               --project "$RAILWAY_PROJECT_ID" \
               --service "$RAILWAY_SERVICE_ID" \
               --ci --no-interactive
+
 
 workflows:
   build_and_deploy_workflow:
